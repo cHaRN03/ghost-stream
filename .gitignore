@@ -1,0 +1,33 @@
+# Ignore Docker-related files
+.dockerignore
+Dockerfile
+docker-compose.yml
+
+# Ignore virtual environment
+venv/
+__pycache__/
+
+# Ignore certificate files
+certs/
+
+# Ignore build artifacts
+build/
+
+# Ignore Python package files
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+
+# Ignore IDE files
+*.swp
+*.swo
+*.swn
+*.bak
+*.tmp
+*.log
+*.lock
+*.DS_Store
+
+# Ignore .env file
+.env
