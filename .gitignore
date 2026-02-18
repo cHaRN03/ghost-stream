@@ -31,3 +31,5 @@ build/
 
 # Ignore .env file
 .env
+
+gen_certs.py
