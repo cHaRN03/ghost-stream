@@ -19,8 +19,9 @@ MANAGER=RelayManager()
 
 class GhostConnectionHandler:
 
-    def __init__(self,connection:QuicConnection):
-        self.connection= connection
+    def __init__(self,protocol):
+        self.protocol=protocol
+        self.connection= protocol._quic
         self.stream_id:str=None
         self.viewer_queue:Optional[asyncio.Queue] = None
         self.role=None
@@ -75,7 +76,7 @@ class GhostConnectionHandler:
                 if room:
                     self.stream_id=sid
                     self.role="VIEWER"
-                    self.viewer_queue=asyncio.Queue(maxsize=50)
+                    self.viewer_queue=asyncio.Queue(maxsize=1000)
 
                     room.add_viewer(self.viewer_queue)
 
@@ -105,11 +106,14 @@ class GhostConnectionHandler:
                     
                     # Send via QUIC Stream 0
                     self.connection.send_stream_data(stream_id=0, data=out_msg.pack())
-                    self.connection.transmit()
+                    self.protocol.transmit()
                     
             except asyncio.CancelledError:
                 # Task was killed (connection dropped)
-                pass        
+                pass  
+            except Exception as e:
+            # If anything breaks here, print it immediately!
+                logger.error(f"CRITICAL ERROR in Pusher task: {e}")      
 
     def _cleanup(self):
             """Fires when the network cable is cut."""
@@ -137,7 +141,7 @@ class GhostServerProtocol(QuicConnectionProtocol):
         # Initialize our handler on the first event
         if not self._handler:
             # self._quic is provided by the parent class
-            self._handler = GhostConnectionHandler(self._quic)
+            self._handler = GhostConnectionHandler(self)
         
         # Pass the event to our logic
         self._handler.quic_event_received(event)
